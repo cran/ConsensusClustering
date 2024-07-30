@@ -19,14 +19,44 @@
 #' @details
 #' performs data perturbation consensus clustering and obtain consensus matrix
 #' Monti et al. (2003) consensus clustering algorithm
+#' This function will be removed in the future release and is replaced by \code{consensus_matrix_data_prtrb()}
 #'
 #' @examples
 #' X = gaussian_clusters()$X
 #' Adj = adj_mat(X, method = "euclidian")
 #' CM = consensus_matrix(Adj, max.cluster=3, max.itter=10, verbos = FALSE)
 #'
-consensus_matrix = function(X, max.cluster = 5, resample.ratio = 0.7, max.itter = 100, clustering.method = "hclust",
-                            adj.conv = TRUE, verbos = TRUE){
+consensus_matrix = function(X, max.cluster = 5, resample.ratio = 0.7, max.itter = 100,
+                            clustering.method = "hclust", adj.conv = TRUE, verbos = TRUE){
+  warning("consensus_matrix() function will be removed in the future release; use consensus_matrix_data_prtrb() instead")
+  CM = consensus_matrix_data_prtrb(X, max.cluster, resample.ratio, max.itter,
+                                   clustering.method, adj.conv, verbos)
+  return(CM)
+}
+
+#' Calculate consensus matrix for data perturbation consensus clustering
+#'
+#' @param X adjacency matrix a Nsample x Nsample
+#' @param max.cluster maximum number of clusters
+#' @param resample.ratio the data ratio to use at each itteration.
+#' @param max.itter maximum number of itterations at each \code{max.cluster}
+#' @param clustering.method base clustering method: \code{c("hclust", "spectral", "pam")}
+#' @param adj.conv binary value to apply soft thresholding (default=\code{TRUE})
+#' @param verbos binary value for verbosity (default=\code{TRUE})
+#'
+#' @return list of consensus matrices for each k
+#'
+#' @details
+#' performs data perturbation consensus clustering and obtain consensus matrix
+#' Monti et al. (2003) consensus clustering algorithm
+#'
+#' @examples
+#' X = gaussian_clusters()$X
+#' Adj = adj_mat(X, method = "euclidian")
+#' CM = consensus_matrix_data_prtrb(Adj, max.cluster=3, max.itter=10, verbos = FALSE)
+#'
+consensus_matrix_data_prtrb = function(X, max.cluster = 5, resample.ratio = 0.7, max.itter = 100,
+                                       clustering.method = "hclust", adj.conv = TRUE, verbos = TRUE){
 
   assertthat::assert_that(ncol(X) == nrow(X))
   assertthat::assert_that(max.cluster>2)
@@ -59,6 +89,9 @@ consensus_matrix = function(X, max.cluster = 5, resample.ratio = 0.7, max.itter 
 
       RandInd = sample(Nsample, floor(resample.ratio*Nsample), replace = FALSE)
       X_i = X[RandInd,RandInd]
+      # sd.noise = .01
+      # if (sd.noise > 0)
+      #   X_i = X_i + matrix(rnorm(nrow(X_i)*ncol(X_i), 0, sd.noise), nrow(X_i), ncol(X_i))
 
       ## Do clustering
       if (clustering.method == "hclust")
@@ -68,7 +101,7 @@ consensus_matrix = function(X, max.cluster = 5, resample.ratio = 0.7, max.itter 
       else if (clustering.method == "pam")
         clusters = pam_clust_from_adj_mat(X_i, k = nClust, alpha = 1, adj.conv = adj.conv)
       else
-        stop("err")
+        stop("clustering.method not implemented")
       Clusters = rep(0,Nsample)
       names(Clusters) = rownames(X)
       Clusters[RandInd] = clusters
@@ -115,9 +148,9 @@ consensus_matrix = function(X, max.cluster = 5, resample.ratio = 0.7, max.itter 
 #' Adj = list()
 #' for (i in 1:length(X_observation))
 #'   Adj[[i]] = adj_mat(X_observation[[i]], method = "euclidian")
-#' CM = multiview_consensus_matrix(Adj, max.cluster = 4, verbos = FALSE)
+#' CM = consensus_matrix_multiview(Adj, max.cluster = 4, verbos = FALSE)
 #'
-multiview_consensus_matrix = function(X, max.cluster = 5, sample.set = NA, clustering.method = "hclust",
+consensus_matrix_multiview = function(X, max.cluster = 5, sample.set = NA, clustering.method = "hclust",
                                       adj.conv = TRUE, verbos = TRUE){
 
   assertthat::assert_that(is.list(X))
@@ -205,9 +238,9 @@ multiview_consensus_matrix = function(X, max.cluster = 5, sample.set = NA, clust
 #' X = gaussian_clusters()$X
 #' Adj = adj_mat(X, method = "euclidian")
 #' CM = consensus_matrix(Adj, max.cluster=3, max.itter=10)
-#' Result = CC_cluster_count(CM, plot.cdf=FALSE)
+#' Result = cc_cluster_count(CM, plot.cdf=FALSE)
 #'
-CC_cluster_count = function(CM, plot.cdf = TRUE, plot.logit = FALSE){
+cc_cluster_count = function(CM, plot.cdf = TRUE, plot.logit = FALSE){
 
   Nsample = ncol(CM[[2]])
   K = 2:(length(CM))

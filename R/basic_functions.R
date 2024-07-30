@@ -241,15 +241,15 @@ pam_clust_from_adj_mat = function (adj.mat, k = 2, alpha = 1, adj.conv = TRUE){
 #'
 coCluster_matrix = function(X, verbos = TRUE){
   Nsample = nrow(X)
-  Nmethod = ncol(X)
+  Nrepeat = ncol(X)
 
   M = matrix(0,Nsample,Nsample)
   I = M
 
   if (verbos)
-    pb = utils::txtProgressBar(min = 0, max = Nmethod, style = 3)
+    pb = utils::txtProgressBar(min = 0, max = Nrepeat, style = 3)
 
-  for (cl in 1:Nmethod){
+  for (cl in 1:Nrepeat){
     M = M + connectivity_matrix(X[,cl])
     I = I + indicator_matrix(X[,cl])
 
@@ -276,16 +276,16 @@ coCluster_matrix = function(X, verbos = TRUE){
 #' @return matrix of similarities between clustering labels
 #'
 #' @details
-#' When performing performing several clustering, the cluster labels may no match with each other.
-#' To find correspondences between clusters, the similarity between different labels need to be calculated.
+#' When performing several clustering, the cluster labels may not match with each other.
+#' To find correspondences between clusters, the similarity between different labels will be calculated.
 #'
 #' @examples
 #' X = gaussian_clusters()$X
 #' x1 = kmeans(X, 5)$cluster
 #' x2 = kmeans(X, 5)$cluster
-#' Sim = lebel_similarity(x1, x2)
+#' Sim = label_similarity(x1, x2)
 #'
-lebel_similarity = function(x1, x2){
+label_similarity = function(x1, x2){
 
   assertthat::assert_that(length(x1) == length(x2))
 
@@ -342,7 +342,7 @@ cluster_relabel = function(x1, x2){
     return(c(row_index, col_index))
   }
 
-  Similarity = lebel_similarity(x1, x2)
+  Similarity = label_similarity(x1, x2)
   N_cluster = nrow(Similarity)
 
   index = order(Similarity, decreasing = TRUE)
